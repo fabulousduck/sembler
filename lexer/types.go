@@ -1,4 +1,4 @@
-package sembler
+package lexer
 
 import "strings"
 
@@ -36,7 +36,7 @@ func contains(name string, list []string) bool {
 	return false
 }
 
-func getKeyword(token *token) string {
+func getKeyword(token *Token) string {
 	keywords := map[string]string{
 		"LDA": "load_accumelator",
 		"LDX": "load_x_register",
