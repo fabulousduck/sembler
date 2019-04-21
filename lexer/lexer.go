@@ -13,9 +13,9 @@ import (
 Lexer is a wrapper for all the lines and keeps track of global lexing indexes
 */
 type Lexer struct {
-	Lines                     []Line
-	currentIndex, currentLine int
-	FileName, Program         string
+	Lines             []Line
+	currentLine       int
+	FileName, Program string
 }
 
 /*
@@ -35,7 +35,7 @@ func (l *Lexer) Lex() {
 	spew.Dump(lines)
 
 	for l.currentLine < len(lines) {
-		currentLine := NewLine(lines[l.currentLine], l.currentIndex)
+		currentLine := NewLine(lines[l.currentLine], l.currentLine)
 		currentLine.Lex()
 		currentLine.tagKeywords()
 		l.Lines = append(l.Lines, *currentLine)

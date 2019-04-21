@@ -3,7 +3,6 @@ package sembler
 import (
 	"io/ioutil"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/fabulousduck/sembler/lexer"
 )
 
@@ -34,5 +33,4 @@ func (s *Sembler) Compile(filename string) {
 	l := lexer.NewLexer(filename, string(file))
 	l.Lex()
 
-	spew.Dump(l)
 }

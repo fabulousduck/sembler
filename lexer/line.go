@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 /*
@@ -35,6 +37,7 @@ func (l *Line) currentChar() string {
 Lex turns a line into a set of tokens
 */
 func (l *Line) Lex() {
+	spew.Dump(l.Raw)
 	for l.CurrentIndex < len(l.Raw) {
 		currentToken := NewToken(l.LineIndex, l.CurrentIndex, l.currentChar())
 		switch currentToken.Type {
@@ -43,22 +46,31 @@ func (l *Line) Lex() {
 		case "integer":
 			currentToken.Value = l.peekTypeN("integer")
 		case "comment":
-			l.readComment()
-			l.advance()
-			continue
+			l.Tokens = append(l.Tokens, *currentToken)
+			return
+		case "left_paren":
+			fallthrough
+		case "right_paren":
+			fallthrough
 		case "dollar":
 			fallthrough
 		case "comma":
 			fallthrough
-		case "left_bracket":
+		case "plus":
+			fallthrough
+		case "dash":
+			fallthrough
+		case "slash":
+			fallthrough
+		case "star":
 			fallthrough
 		case "hashtag":
+			fallthrough
+		case "left_bracket":
 			fallthrough
 		case "right_bracket":
 			fallthrough
 		case "double_dot":
-			fallthrough
-		case "semicolon":
 			l.advance()
 		case "undefined_symbol":
 			//TODO proper errors
@@ -69,11 +81,13 @@ func (l *Line) Lex() {
 		case "ignoreable":
 			l.advance()
 			continue
+		default:
+			fmt.Printf("unknown character %s", currentToken.Type)
 		}
 
 		l.Tokens = append(l.Tokens, *currentToken)
 	}
-
+	return
 }
 
 func (l *Line) peekTypeN(typeName string) string {
@@ -99,13 +113,6 @@ func (l *Line) peekTypeN(typeName string) string {
 
 func (l *Line) advance() {
 	l.CurrentIndex++
-}
-
-func (l *Line) readComment() {
-	l.CurrentIndex++
-	for t := determineType(l.currentChar()); t != "newline"; t = determineType(l.currentChar()) {
-		l.CurrentIndex++
-	}
 }
 
 func (l *Line) tagKeywords() {
