@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 /*
@@ -37,7 +35,6 @@ func (l *Line) currentChar() string {
 Lex turns a line into a set of tokens
 */
 func (l *Line) Lex() {
-	spew.Dump(l.Raw)
 	for l.CurrentIndex < len(l.Raw) {
 		currentToken := NewToken(l.LineIndex, l.CurrentIndex, l.currentChar())
 		switch currentToken.Type {
