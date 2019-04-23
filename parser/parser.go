@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"strings"
+
 	"github.com/fabulousduck/sembler/lexer"
 )
 
@@ -21,6 +23,20 @@ func NewParser() *Parser {
 }
 
 /*
+Mode is a struct holding info about the operation mode
+*/
+type Mode struct {
+	Name, Variable string
+}
+
+/*
+NewMode returns a new mode pointer
+*/
+func NewMode() *Mode {
+	return new(Mode)
+}
+
+/*
 Parse takes a set of lexed lines and turns them into nodes
 
 these nodes can then be made into opcodes
@@ -29,6 +45,7 @@ func (p *Parser) Parse(lines []lexer.Line) {
 	for _, line := range lines {
 		switch line.Tokens[0].Type {
 		case "load_accumelator":
+
 			break
 		case "load_x_register":
 			break
@@ -134,4 +151,48 @@ func (p *Parser) Parse(lines []lexer.Line) {
 		}
 	}
 
+}
+
+func (p *Parser) getInstructionMode(line *lexer.Line) *Mode {
+	mode := NewMode()
+
+	//1 is the index at which mode is defined
+
+	modeIndentifierChar := line.Tokens[1].Type
+	operationValue := line.Tokens[2].Value
+
+	//final character for non direct operations is the last one
+	XYNonDirectLocation := strings.ToLower(line.Tokens[len(line.Tokens)-1].Value)
+
+	//check for x or y variables
+	if XYNonDirectLocation == "x" || XYNonDirectLocation == ")" {
+		mode.Variable = "x"
+	}
+
+	if XYNonDirectLocation == "y" {
+		mode.Variable = "y"
+	}
+
+	//only immidiate mode starts with a #
+	if modeIndentifierChar == "hashtag" {
+		mode.Name = "Immidiate"
+		mode.Variable = ""
+		return mode
+	}
+
+	//if it is encapsulated, we can assume it is an indirect operation
+	if modeIndentifierChar == "left_paren" {
+		mode.Name = "indirect"
+		return mode
+	}
+
+	if len(operationValue) == 4 {
+		mode.Name = "absolute"
+		return mode
+	}
+
+	mode.Name = "zeroPage"
+	return mode
+
+	return mode
 }

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/fabulousduck/smol/errors"
 )
 
@@ -32,7 +30,6 @@ func NewLexer(filename string, program string) *Lexer {
 func (l *Lexer) Lex() {
 
 	lines := strings.Split(l.Program, "\n")
-	spew.Dump(lines)
 
 	for l.currentLine < len(lines) {
 		currentLine := NewLine(lines[l.currentLine], l.currentLine)
