@@ -4,6 +4,9 @@ import (
 	"strings"
 
 	"github.com/fabulousduck/sembler/lexer"
+	"github.com/fabulousduck/sembler/parser/lda"
+	"github.com/fabulousduck/sembler/parser/mode"
+	"github.com/fabulousduck/sembler/parser/node"
 )
 
 /*
@@ -12,7 +15,7 @@ Parser struct
 structure on which all paring functions can be called
 */
 type Parser struct {
-	ParsedNodes []Node
+	ParsedNodes []*node.Node
 }
 
 /*
@@ -20,20 +23,6 @@ NewParser returns a new parser structure pointer
 */
 func NewParser() *Parser {
 	return new(Parser)
-}
-
-/*
-Mode is a struct holding info about the operation mode
-*/
-type Mode struct {
-	Name, Variable string
-}
-
-/*
-NewMode returns a new mode pointer
-*/
-func NewMode() *Mode {
-	return new(Mode)
 }
 
 /*
@@ -45,7 +34,8 @@ func (p *Parser) Parse(lines []lexer.Line) {
 	for _, line := range lines {
 		switch line.Tokens[0].Type {
 		case "load_accumelator":
-
+			mode := GetInstructionMode(&line)
+			p.ParsedNodes = append(p.ParsedNodes, lda.ParseLDA(&line, mode))
 			break
 		case "load_x_register":
 			break
@@ -153,8 +143,11 @@ func (p *Parser) Parse(lines []lexer.Line) {
 
 }
 
-func (p *Parser) getInstructionMode(line *lexer.Line) *Mode {
-	mode := NewMode()
+/*
+GetInstructionMode gets the mode in which the line was written
+*/
+func GetInstructionMode(line *lexer.Line) *mode.Mode {
+	mode := mode.NewMode()
 
 	//1 is the index at which mode is defined
 
@@ -175,7 +168,7 @@ func (p *Parser) getInstructionMode(line *lexer.Line) *Mode {
 
 	//only immidiate mode starts with a #
 	if modeIndentifierChar == "hashtag" {
-		mode.Name = "Immidiate"
+		mode.Name = "immidiate"
 		mode.Variable = ""
 		return mode
 	}
@@ -194,5 +187,22 @@ func (p *Parser) getInstructionMode(line *lexer.Line) *Mode {
 	mode.Name = "zeroPage"
 	return mode
 
-	return mode
+}
+
+/*
+FindInt looks for an integer value in a parsed line
+
+2nd return value indicatest whether it has been found or not
+
+1 means found
+0 means not found
+*/
+func FindInt(l *lexer.Line) (lexer.Token, int) {
+	for _, value := range l.Tokens {
+		if value.Type == "integer" {
+			return value, 1
+		}
+	}
+
+	return l.Tokens[0], 0
 }
