@@ -17,6 +17,9 @@ ParseLDA parses an lda line into an opcode node
 */
 func ParseLDA(line *lexer.Line, mode *mode.Mode) *node.Node {
 
+	var intValue int
+	var intValueCastError error
+
 	modeBytePrefixes := map[string]byte{
 		"immidiate": 0xA9,
 		"zeroPage":  0xA5,
@@ -33,11 +36,19 @@ func ParseLDA(line *lexer.Line, mode *mode.Mode) *node.Node {
 	node.Instruction = "load_accumelator"
 
 	spew.Dump(line)
-
-	intValue, err := strconv.Atoi(line.Tokens[2].Value)
-	if err != nil {
-		fmt.Printf("invalid value %s\n", line.Tokens[2].Value)
-		os.Exit(65)
+	spew.Dump(mode)
+	if mode.Name == "indirect" || mode.Name == "immidiate" {
+		intValue, intValueCastError = strconv.Atoi(line.Tokens[3].Value)
+		if intValueCastError != nil {
+			fmt.Printf("invalid value %s\n", line.Tokens[3].Value)
+			os.Exit(65)
+		}
+	} else {
+		intValue, intValueCastError = strconv.Atoi(line.Tokens[2].Value)
+		if intValueCastError != nil {
+			fmt.Printf("invalid value %s\n", line.Tokens[2].Value)
+			os.Exit(65)
+		}
 	}
 
 	switch mode.Name {
