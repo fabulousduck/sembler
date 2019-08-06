@@ -120,9 +120,8 @@ func parseAbsolute(line *lexer.Line, mode string) *node.Node {
 }
 
 func parseZeroPage(line *lexer.Line, mode string) *node.Node {
-	var integerValue int
 	node := node.NewNode()
-	zeroPageModeBytePrefix := 0xA5
+	zeroPageNoModeBytePrefix := 0xA5
 	zeroPageXModeBytePrefix := 0xB5
 
 	node.Instruction = "load_accumelator"
@@ -131,8 +130,8 @@ func parseZeroPage(line *lexer.Line, mode string) *node.Node {
 	line.Advance()
 
 	line.Expect([]string{"integer"})
-	integerValue, _ = strconv.Atoi(line.CurrentToken().Value)
 	line.Advance()
+	integerValue := line.CurrentToken().Value
 
 	if mode == "x" {
 		line.ExpectSequence([][]string{
@@ -142,9 +141,9 @@ func parseZeroPage(line *lexer.Line, mode string) *node.Node {
 	}
 
 	if mode == "x" {
-		node.Opcode = zeroPageModeBytePrefix<<2 | integerValue
+		node.Opcode = zeroPageXModeBytePrefix<<8 | byte.StringToByteSequence(integerValue)[0]
 	} else {
-		node.Opcode = zeroPageXModeBytePrefix<<2 | integerValue
+		node.Opcode = zeroPageNoModeBytePrefix<<8 | byte.StringToByteSequence(integerValue)[0]
 	}
 
 	return node
