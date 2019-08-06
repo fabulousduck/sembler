@@ -17,8 +17,8 @@ func TestLDAParsing(T *testing.T) {
 		"LDA $4400":   node.Node{&mode.Mode{"absolute", ""}, "load_accumelator", 0xAD0044},
 		"LDA $4400,X": node.Node{&mode.Mode{"absolute", "x"}, "load_accumelator", 0xBD0044},
 		"LDA $4400,Y": node.Node{&mode.Mode{"absolute", "y"}, "load_accumelator", 0xB90044},
-		// "LDA ($44,X)": node.Node{&mode.Mode{"indirect", "x"}, "load_accumelator", 0xA144},
-		// "LDA ($44),Y": node.Node{&mode.Mode{"indirect", "y"}, "load_accumelator", 0xB144},
+		"LDA ($44,X)": node.Node{&mode.Mode{"indirect", "x"}, "load_accumelator", 0xA144},
+		"LDA ($44),Y": node.Node{&mode.Mode{"indirect", "y"}, "load_accumelator", 0xB144},
 	}
 
 	for key, value := range testCases {
@@ -29,7 +29,8 @@ func TestLDAParsing(T *testing.T) {
 
 		if ldaNode.Opcode != value.Opcode {
 			T.Errorf(" \nline: %s\nfail: opcode\nexpect: %x\ngot:    %x\n", key, value.Opcode, ldaNode.Opcode)
-			T.Fail()
+			T.FailNow()
+
 		}
 
 		T.Logf(" \nline: %s\nsuccess: opcode\nexpect: %x\ngot:    %x\n\n", key, value.Opcode, ldaNode.Opcode)

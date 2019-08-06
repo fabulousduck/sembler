@@ -52,14 +52,13 @@ func parseImmidiate(line *lexer.Line) *node.Node {
 }
 
 func parseIndirect(line *lexer.Line, mode string) *node.Node {
-	var integerValue int
 	node := node.NewNode()
-	indirectModeBytePrefix := 0xA5
+	indirectXModeBytePrefix := 0xA1
+	indirectYModeBytePrefix := 0xB1
 
 	node.Instruction = "load_accumelator"
 
 	//move past the LDA keyword
-	line.Advance()
 
 	line.ExpectSequence([][]string{
 		{"left_paren"},
@@ -67,10 +66,12 @@ func parseIndirect(line *lexer.Line, mode string) *node.Node {
 		{"integer"},
 	})
 
+	integerValue := line.CurrentToken().Value
+
 	if mode == "x" {
+		node.Opcode = indirectXModeBytePrefix<<8 | byte.StringToByteSequence(integerValue)[0]
 
 		line.Expect([]string{"comma"})
-		integerValue, _ = strconv.Atoi(line.CurrentToken().Value)
 		line.Advance()
 
 		line.ExpectSequence([][]string{
@@ -79,14 +80,14 @@ func parseIndirect(line *lexer.Line, mode string) *node.Node {
 		})
 
 	} else {
+		node.Opcode = indirectYModeBytePrefix<<8 | byte.StringToByteSequence(integerValue)[0]
+
 		line.ExpectSequence([][]string{
-			{"lright_paren"},
+			{"right_paren"},
 			{"comma"},
 			{"character"},
 		})
 	}
-
-	node.Opcode = indirectModeBytePrefix<<4 | integerValue
 
 	return node
 }
@@ -118,25 +119,6 @@ func parseAbsolute(line *lexer.Line, mode string) *node.Node {
 	return node
 }
 
-func generateAbsoluteOpcode(node *node.Node, mode string, value string) int {
-	absoluteNoModeBytePrefix := 0xAD
-	absoluteXModeBytePrefix := 0xBD
-	absoluteYModeBytePrefix := 0xB9
-	bytes := byte.StringToByteSequence(value)
-	var opcode int
-
-	if mode == "x" {
-
-		opcode = absoluteXModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
-	} else if mode == "y" {
-		opcode = absoluteYModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
-	} else {
-		opcode = absoluteNoModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
-	}
-
-	return opcode
-}
-
 func parseZeroPage(line *lexer.Line, mode string) *node.Node {
 	var integerValue int
 	node := node.NewNode()
@@ -166,4 +148,23 @@ func parseZeroPage(line *lexer.Line, mode string) *node.Node {
 	}
 
 	return node
+}
+
+func generateAbsoluteOpcode(node *node.Node, mode string, value string) int {
+	absoluteNoModeBytePrefix := 0xAD
+	absoluteXModeBytePrefix := 0xBD
+	absoluteYModeBytePrefix := 0xB9
+	bytes := byte.StringToByteSequence(value)
+	var opcode int
+
+	if mode == "x" {
+
+		opcode = absoluteXModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
+	} else if mode == "y" {
+		opcode = absoluteYModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
+	} else {
+		opcode = absoluteNoModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
+	}
+
+	return opcode
 }
