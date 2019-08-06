@@ -1,8 +1,6 @@
 package lda
 
 import (
-	"strconv"
-
 	"github.com/fabulousduck/sembler/lexer"
 	"github.com/fabulousduck/sembler/parser/byte"
 	"github.com/fabulousduck/sembler/parser/mode"
@@ -28,14 +26,10 @@ func ParseLDA(line *lexer.Line, mode *mode.Mode) *node.Node {
 }
 
 func parseImmidiate(line *lexer.Line) *node.Node {
-	var integerValue int
 	node := node.NewNode()
 	immidiateModeBytePrefix := 0xA9
 
 	node.Instruction = "load_accumelator"
-
-	//move past the LDA keyword
-	line.Advance()
 
 	line.ExpectSequence([][]string{
 		{"hashtag"},
@@ -43,10 +37,10 @@ func parseImmidiate(line *lexer.Line) *node.Node {
 	})
 
 	line.Expect([]string{"integer"})
-	integerValue, _ = strconv.Atoi(line.CurrentToken().Value)
 	line.Advance()
+	integerValue := line.CurrentToken().Value
 
-	node.Opcode = immidiateModeBytePrefix<<2 | integerValue
+	node.Opcode = immidiateModeBytePrefix<<8 | byte.StringToByteSequence(integerValue)[0]
 
 	return node
 }
