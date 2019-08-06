@@ -35,6 +35,7 @@ func (l *Lexer) Lex() {
 		currentLine := NewLine(lines[l.currentLine], l.currentLine)
 		currentLine.Lex()
 		currentLine.tagKeywords()
+		currentLine.CurrentIndex = 0 //this is done so we can use functions like advance in the future
 		l.Lines = append(l.Lines, *currentLine)
 		l.currentLine++
 

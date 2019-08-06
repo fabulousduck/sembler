@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+
+	"github.com/fabulousduck/proto/src/types"
 )
 
 /*
@@ -68,7 +70,7 @@ func (l *Line) Lex() {
 		case "right_bracket":
 			fallthrough
 		case "double_dot":
-			l.advance()
+			l.Advance()
 		case "undefined_symbol":
 			//TODO proper errors
 			fmt.Printf("fuck off error")
@@ -76,7 +78,7 @@ func (l *Line) Lex() {
 		case "newline":
 			break
 		case "ignoreable":
-			l.advance()
+			l.Advance()
 			continue
 		default:
 			fmt.Printf("unknown character %s", currentToken.Type)
@@ -97,19 +99,71 @@ func (l *Line) peekTypeN(typeName string) string {
 		if l.CurrentIndex+1 >= len(l.Raw) {
 
 			currentString.WriteString(char)
-			l.advance()
+			l.Advance()
 
 			return currentString.String()
 		}
 		currentString.WriteString(char)
-		l.advance()
+		l.Advance()
 	}
 
 	return currentString.String()
 }
 
-func (l *Line) advance() {
+/*
+Advance moves the currentIndex of the line one forward
+*/
+func (l *Line) Advance() {
 	l.CurrentIndex++
+}
+
+/*
+Eol returns if there are no more tokens to be read
+*/
+func (l *Line) Eol() bool {
+	return l.CurrentIndex+1 == len(l.Tokens)
+}
+
+/*
+Expect checks if the NEXT token is of a given set of types.
+If not, it will throw a syntax error
+*/
+func (l *Line) Expect(expectedValues []string) {
+	nextToken := l.NextToken()
+	if !types.Contains(nextToken.Type, expectedValues) {
+		//TODO proper errors
+		fmt.Printf("\nsyntax error: unexpected %s\nexpected one of : ", nextToken.Value)
+		for _, val := range expectedValues {
+			fmt.Printf("%s, ", val)
+		}
+		fmt.Printf("\nin line: %s\n\n", l.Raw)
+		// ThrowSemanticError(&nextToken, expectedValues, p.Filename)
+		os.Exit(65)
+	}
+}
+
+/*
+ExpectSequence allows you to expect a sequence of types
+*/
+func (l *Line) ExpectSequence(expectedValues [][]string) {
+	for _, expectedSubValues := range expectedValues {
+		l.Expect(expectedSubValues)
+		l.Advance()
+	}
+}
+
+/*
+CurrentToken returns the token at the currentIndex
+*/
+func (l *Line) CurrentToken() Token {
+	return l.Tokens[l.CurrentIndex]
+}
+
+/*
+NextToken returns the token at the next index above currentIndex
+*/
+func (l *Line) NextToken() Token {
+	return l.Tokens[l.CurrentIndex+1]
 }
 
 func (l *Line) tagKeywords() {

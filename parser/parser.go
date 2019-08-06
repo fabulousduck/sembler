@@ -206,3 +206,8 @@ func FindInt(l *lexer.Line) (lexer.Token, int) {
 
 	return l.Tokens[0], 0
 }
+
+
+func (p *Parser) validateSyntax() {
+	
+}

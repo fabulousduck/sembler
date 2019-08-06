@@ -28,14 +28,17 @@ func determineType(character string) string {
 	}
 
 	for key, values := range types {
-		if contains(usableChar, values) {
+		if Contains(usableChar, values) {
 			return key
 		}
 	}
 	return "undefined_symbol"
 }
 
-func contains(name string, list []string) bool {
+/*
+Contains is a function that checks if a given character is present in a map
+*/
+func Contains(name string, list []string) bool {
 	for i := 0; i < len(list); i++ {
 		if string(list[i]) == name {
 			return true

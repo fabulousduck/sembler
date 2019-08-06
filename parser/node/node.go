@@ -28,7 +28,7 @@ Opcode: the opcode produced from the line of assembly
 type Node struct {
 	Mode        *mode.Mode
 	Instruction string
-	Opcode      uint32
+	Opcode      int
 }
 
 /*

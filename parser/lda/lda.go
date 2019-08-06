@@ -1,13 +1,10 @@
 package lda
 
 import (
-	"fmt"
-	"os"
 	"strconv"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/fabulousduck/sembler/lexer"
+	"github.com/fabulousduck/sembler/parser/byte"
 	"github.com/fabulousduck/sembler/parser/mode"
 	"github.com/fabulousduck/sembler/parser/node"
 )
@@ -16,61 +13,156 @@ import (
 ParseLDA parses an lda line into an opcode node
 */
 func ParseLDA(line *lexer.Line, mode *mode.Mode) *node.Node {
-
-	modeBytePrefixes := map[string]byte{
-		"immidiate": 0xA9,
-		"zeroPage":  0xA5,
-		"zeroPageX": 0xB5,
-		"absolute":  0xAD,
-		"absoluteX": 0xBD,
-		"absoluteY": 0xB9,
-		"indirectX": 0xA1,
-		"indirectY": 0xB1,
+	switch mode.Name {
+	case "immidiate":
+		return parseImmidiate(line)
+	case "indirect":
+		return parseIndirect(line, mode.Variable)
+	case "absolute":
+		return parseAbsolute(line, mode.Variable)
+	case "zeroPage":
+		return parseZeroPage(line, mode.Variable)
 	}
 
+	return node.NewNode()
+}
+
+func parseImmidiate(line *lexer.Line) *node.Node {
+	var integerValue int
+	node := node.NewNode()
+	immidiateModeBytePrefix := 0xA9
+
+	node.Instruction = "load_accumelator"
+
+	//move past the LDA keyword
+	line.Advance()
+
+	line.ExpectSequence([][]string{
+		{"hashtag"},
+		{"dollar"},
+	})
+
+	line.Expect([]string{"integer"})
+	integerValue, _ = strconv.Atoi(line.CurrentToken().Value)
+	line.Advance()
+
+	node.Opcode = immidiateModeBytePrefix<<2 | integerValue
+
+	return node
+}
+
+func parseIndirect(line *lexer.Line, mode string) *node.Node {
+	var integerValue int
+	node := node.NewNode()
+	indirectModeBytePrefix := 0xA5
+
+	node.Instruction = "load_accumelator"
+
+	//move past the LDA keyword
+	line.Advance()
+
+	line.ExpectSequence([][]string{
+		{"left_paren"},
+		{"dollar"},
+		{"integer"},
+	})
+
+	if mode == "x" {
+
+		line.Expect([]string{"comma"})
+		integerValue, _ = strconv.Atoi(line.CurrentToken().Value)
+		line.Advance()
+
+		line.ExpectSequence([][]string{
+			{"character"},
+			{"right_paren"},
+		})
+
+	} else {
+		line.ExpectSequence([][]string{
+			{"lright_paren"},
+			{"comma"},
+			{"character"},
+		})
+	}
+
+	node.Opcode = indirectModeBytePrefix<<4 | integerValue
+
+	return node
+}
+
+func parseAbsolute(line *lexer.Line, mode string) *node.Node {
 	node := node.NewNode()
 
 	node.Instruction = "load_accumelator"
 
-	spew.Dump(line)
+	line.Expect([]string{"dollar"})
+	line.Advance()
 
-	intValue, err := strconv.Atoi(line.Tokens[2].Value)
-	if err != nil {
-		fmt.Printf("invalid value %s\n", line.Tokens[2].Value)
-		os.Exit(65)
+	line.Expect([]string{"integer"})
+	line.Advance()
+	integerValueString := line.CurrentToken().Value
+
+	if line.Eol() {
+		node.Opcode = generateAbsoluteOpcode(node, mode, integerValueString)
+		return node
 	}
 
-	switch mode.Name {
-	case "immidiate":
-		node.Opcode = uint32(modeBytePrefixes["immidiate"]<<2 | byte(intValue))
-		break
-	case "indirect":
-		if mode.Variable == "x" {
-			node.Opcode = uint32(modeBytePrefixes["indirectX"]<<2 | byte(intValue))
-			break
-		}
-		node.Opcode = uint32(modeBytePrefixes["indirectY"]<<2 | byte(intValue))
-		break
-	case "absolute":
-		//check if this splitting is correct
-		intRS, err := strconv.Atoi(line.Tokens[2].Value[:2])
-		intLS, err := strconv.Atoi(line.Tokens[2].Value[2:])
+	line.ExpectSequence([][]string{
+		{"comma"},
+		{"character"},
+	})
 
-		if err != nil {
-			fmt.Printf("LDA absolute call with non 4 length hex")
-			os.Exit(65)
-		}
+	node.Opcode = generateAbsoluteOpcode(node, mode, integerValueString)
 
-		if mode.Variable == "x" {
-			node.Opcode = uint32(modeBytePrefixes["absoluteX"]<<4 | byte(intLS))
-			node.Opcode = uint32(byte(node.Opcode<<2) | byte(intRS))
-			break
-		} else {
+	return node
+}
 
-		}
-		break
-	case "zeroPage":
-		break
+func generateAbsoluteOpcode(node *node.Node, mode string, value string) int {
+	absoluteNoModeBytePrefix := 0xAD
+	absoluteXModeBytePrefix := 0xBD
+	absoluteYModeBytePrefix := 0xB9
+	bytes := byte.StringToByteSequence(value)
+	var opcode int
+
+	if mode == "x" {
+
+		opcode = absoluteXModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
+	} else if mode == "y" {
+		opcode = absoluteYModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
+	} else {
+		opcode = absoluteNoModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
+	}
+
+	return opcode
+}
+
+func parseZeroPage(line *lexer.Line, mode string) *node.Node {
+	var integerValue int
+	node := node.NewNode()
+	zeroPageModeBytePrefix := 0xA5
+	zeroPageXModeBytePrefix := 0xB5
+
+	node.Instruction = "load_accumelator"
+
+	line.Expect([]string{"dollar"})
+	line.Advance()
+
+	line.Expect([]string{"integer"})
+	integerValue, _ = strconv.Atoi(line.CurrentToken().Value)
+	line.Advance()
+
+	if mode == "x" {
+		line.ExpectSequence([][]string{
+			{"comma"},
+			{"character"},
+		})
+	}
+
+	if mode == "x" {
+		node.Opcode = zeroPageModeBytePrefix<<2 | integerValue
+	} else {
+		node.Opcode = zeroPageXModeBytePrefix<<2 | integerValue
 	}
 
 	return node
