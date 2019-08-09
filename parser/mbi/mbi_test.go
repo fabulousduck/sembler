@@ -1,4 +1,4 @@
-package lda
+package mbi
 
 import (
 	"testing"
@@ -25,15 +25,15 @@ func TestLDAParsing(T *testing.T) {
 
 		lexer := lexer.NewLexer("mode test", key)
 		lexer.Lex()
-		ldaNode := ParseLDA(&lexer.Lines[0], value.Mode)
+		mbiNode := ParseMBI(&lexer.Lines[0], value.Mode)
 
-		if ldaNode.Opcode != value.Opcode {
-			T.Errorf(" \nline: %s\nfail: opcode\nexpect: %x\ngot:    %x\n", key, value.Opcode, ldaNode.Opcode)
+		if mbiNode.Opcode != value.Opcode {
+			T.Errorf(" \nline: %s\nfail: opcode\nexpect: %x\ngot:    %x\n", key, value.Opcode, mbiNode.Opcode)
 			T.FailNow()
 
 		}
 
-		T.Logf(" \nline: %s\nsuccess: opcode\nexpect: %x\ngot:    %x\n\n", key, value.Opcode, ldaNode.Opcode)
+		T.Logf(" \nline: %s\nsuccess: opcode\nexpect: %x\ngot:    %x\n\n", key, value.Opcode, mbiNode.Opcode)
 
 	}
 

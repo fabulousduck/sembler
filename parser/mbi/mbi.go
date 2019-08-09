@@ -1,4 +1,6 @@
-package lda
+//Package mbi stands for "Mode Based Instruction"
+//this refers to a group of instructions that have a set mode
+package mbi
 
 import (
 	"github.com/fabulousduck/sembler/lexer"
@@ -7,10 +9,22 @@ import (
 	"github.com/fabulousduck/sembler/parser/node"
 )
 
+type instructionModeSet struct {
+	immidiate int
+	zeroPage  int
+	zeroPageX int
+	absolute  int
+	absoluteX int
+	absoluteY int
+	indirectX int
+	indirectY int
+}
+type instructionModeMap map[string]instructionModeSet
+
 /*
-ParseLDA parses an lda line into an opcode node
+ParseMBI parses an MBI line into an opcode node
 */
-func ParseLDA(line *lexer.Line, mode *mode.Mode) *node.Node {
+func ParseMBI(line *lexer.Line, mode *mode.Mode) *node.Node {
 	switch mode.Name {
 	case "immidiate":
 		return parseImmidiate(line)
@@ -51,8 +65,6 @@ func parseIndirect(line *lexer.Line, mode string) *node.Node {
 	indirectYModeBytePrefix := 0xB1
 
 	node.Instruction = "load_accumelator"
-
-	//move past the LDA keyword
 
 	line.ExpectSequence([][]string{
 		{"left_paren"},
@@ -151,7 +163,6 @@ func generateAbsoluteOpcode(node *node.Node, mode string, value string) int {
 	var opcode int
 
 	if mode == "x" {
-
 		opcode = absoluteXModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
 	} else if mode == "y" {
 		opcode = absoluteYModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
@@ -160,4 +171,29 @@ func generateAbsoluteOpcode(node *node.Node, mode string, value string) int {
 	}
 
 	return opcode
+}
+
+/*
+IsMBI checks if an instruction is a generic MBI structured instruction
+*/
+func IsMBI(name string) bool {
+	if _, ok := getMBIMap()[name]; ok {
+		return true
+	}
+	return false
+}
+
+func getMBIMap() instructionModeMap {
+	return instructionModeMap{
+		"load_accumelator": instructionModeSet{
+			immidiate: 0xA9,
+			zeroPage:  0xA5,
+			zeroPageX: 0xB5,
+			absolute:  0xAD,
+			absoluteX: 0xBD,
+			absoluteY: 0xB9,
+			indirectX: 0xA1,
+			indirectY: 0xB1,
+		},
+	}
 }
