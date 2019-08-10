@@ -4,14 +4,14 @@ import (
 	"strings"
 
 	"github.com/fabulousduck/sembler/lexer"
-	"github.com/fabulousduck/sembler/parser/mbi"
 	"github.com/fabulousduck/sembler/parser/mode"
 	"github.com/fabulousduck/sembler/parser/node"
 )
 
+type instructionModeMap map[string]int
+
 /*
 Parser struct
-
 structure on which all paring functions can be called
 */
 type Parser struct {
@@ -27,18 +27,33 @@ func NewParser() *Parser {
 
 /*
 Parse takes a set of lexed lines and turns them into nodes
-
 these nodes can then be made into opcodes
 */
 func (p *Parser) Parse(lines []lexer.Line) {
 	for _, line := range lines {
+		nodes := ParseMBI(&line, GetInstructionMode(&line))
+		p.ParsedNodes = append(p.ParsedNodes, nodes)
+	}
+}
 
-		if mbi.IsMBI(line.Tokens[0].Type) {
-			nodes := mbi.ParseMBI(&line, GetInstructionMode(&line))
-			p.ParsedNodes = append(p.ParsedNodes, nodes)
-		}
+/*
+ParseMBI parses an MBI line into an opcode node
+*/
+func ParseMBI(line *lexer.Line, mode *mode.Mode) *node.Node {
+	switch mode.Name {
+	case "implied":
+		return ParseImplied(line)
+	case "immidiate":
+		return ParseImmidiate(line)
+	case "indirect":
+		return ParseIndirect(line, mode.Variable)
+	case "absolute":
+		return ParseAbsolute(line, mode.Variable)
+	case "zeroPage":
+		return ParseZeroPage(line, mode.Variable)
 	}
 
+	return node.NewNode()
 }
 
 /*
@@ -51,6 +66,13 @@ func GetInstructionMode(line *lexer.Line) *mode.Mode {
 
 	modeIndentifierChar := line.Tokens[1].Type
 	operationValue := line.Tokens[2].Value
+
+	//check if its an implied instruction like BRK
+	if len(line.Tokens) == 1 {
+		mode.Name = "implied"
+		mode.Variable = ""
+		return mode
+	}
 
 	//final character for non direct operations is the last one
 	XYNonDirectLocation := strings.ToLower(line.Tokens[len(line.Tokens)-1].Value)
@@ -77,6 +99,8 @@ func GetInstructionMode(line *lexer.Line) *mode.Mode {
 		return mode
 	}
 
+	//if the value of the operation is 4 characters long,
+	//it is assumed it is an absolute operation
 	if len(operationValue) == 4 {
 		mode.Name = "absolute"
 		return mode
@@ -89,9 +113,7 @@ func GetInstructionMode(line *lexer.Line) *mode.Mode {
 
 /*
 FindInt looks for an integer value in a parsed line
-
 2nd return value indicatest whether it has been found or not
-
 1 means found
 0 means not found
 */
