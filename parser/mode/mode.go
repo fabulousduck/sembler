@@ -5,7 +5,6 @@ Mode is a struct holding info about the operation mode
 */
 type Mode struct {
 	Name, Variable string
-	IsHex          bool
 }
 
 /*

@@ -8,12 +8,11 @@ import (
 
 /*
 ParseAbsolute parses an instruction in absolute form
-
 */
 func ParseAbsolute(line *lexer.Line, mode string) *node.Node {
 	node := node.NewNode()
 
-	node.Instruction = "load_accumelator"
+	node.Instruction = "load_accumulator"
 
 	line.Expect([]string{"dollar"})
 	line.Advance()
@@ -38,19 +37,30 @@ func ParseAbsolute(line *lexer.Line, mode string) *node.Node {
 }
 
 func generateAbsoluteOpcode(node *node.Node, mode string, value string) int {
-	absoluteNoModeBytePrefix := 0xAD
-	absoluteXModeBytePrefix := 0xBD
-	absoluteYModeBytePrefix := 0xB9
 	bytes := byte.StringToByteSequence(value)
-	var opcode int
+	if mode != "x" && mode != "y" {
+		mode = "0"
+	}
+	return getOpcodeForAbsolute(node.Instruction, mode)<<16 | bytes[1]<<8 | bytes[0]
+}
 
-	if mode == "x" {
-		opcode = absoluteXModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
-	} else if mode == "y" {
-		opcode = absoluteYModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
-	} else {
-		opcode = absoluteNoModeBytePrefix<<16 | bytes[1]<<8 | bytes[0]
+func getOpcodeForAbsolute(instruction string, mode string) int {
+	/*the slices values are represented as follows
+		[x,y,0]
+	these are modes*/
+	opcodeMap := map[string][]int{
+		"load_accumulator": {0xBD, 0xB9, 0xAD},
 	}
 
-	return opcode
+	if value, ok := opcodeMap[instruction]; ok {
+		switch mode {
+		case "x":
+			return value[0]
+		case "y":
+			return value[1]
+		case "0":
+			return value[2]
+		}
+	}
+	return 0x0
 }

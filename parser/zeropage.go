@@ -11,10 +11,8 @@ ParseZeroPage parses an instruction in zeropage form
 */
 func ParseZeroPage(line *lexer.Line, mode string) *node.Node {
 	node := node.NewNode()
-	zeroPageNoModeBytePrefix := 0xA5
-	zeroPageXModeBytePrefix := 0xB5
 
-	node.Instruction = "load_accumelator"
+	node.Instruction = "load_accumulator"
 
 	line.Expect([]string{"dollar"})
 	line.Advance()
@@ -28,13 +26,29 @@ func ParseZeroPage(line *lexer.Line, mode string) *node.Node {
 			{"comma"},
 			{"character"},
 		})
+		node.Opcode = getOpcodeForZeroPage(node.Instruction, "x")<<8 | byte.StringToByteSequence(integerValue)[0]
+		return node
 	}
 
-	if mode == "x" {
-		node.Opcode = zeroPageXModeBytePrefix<<8 | byte.StringToByteSequence(integerValue)[0]
-	} else {
-		node.Opcode = zeroPageNoModeBytePrefix<<8 | byte.StringToByteSequence(integerValue)[0]
-	}
-
+	node.Opcode = getOpcodeForZeroPage(node.Instruction, "0")<<8 | byte.StringToByteSequence(integerValue)[0]
 	return node
+}
+
+func getOpcodeForZeroPage(instruction string, mode string) int {
+	/*the slices values are represented as follows
+		[x,y]
+	these are modes*/
+	opcodeMap := map[string][]int{
+		"load_accumulator": {0xB5, 0xA5},
+	}
+
+	if value, ok := opcodeMap[instruction]; ok {
+		switch mode {
+		case "x":
+			return value[0]
+		case "0":
+			return value[1]
+		}
+	}
+	return 0x0
 }

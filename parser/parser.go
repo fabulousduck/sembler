@@ -8,8 +8,6 @@ import (
 	"github.com/fabulousduck/sembler/parser/node"
 )
 
-type instructionModeMap map[string]int
-
 /*
 Parser struct
 structure on which all paring functions can be called

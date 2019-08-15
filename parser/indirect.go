@@ -12,10 +12,8 @@ ParseIndirect parses an instruction in indirect form
 */
 func ParseIndirect(line *lexer.Line, mode string) *node.Node {
 	node := node.NewNode()
-	indirectXModeBytePrefix := 0xA1
-	indirectYModeBytePrefix := 0xB1
 
-	node.Instruction = "load_accumelator"
+	node.Instruction = "load_accumulator"
 
 	line.ExpectSequence([][]string{
 		{"left_paren"},
@@ -26,7 +24,7 @@ func ParseIndirect(line *lexer.Line, mode string) *node.Node {
 	integerValue := line.CurrentToken().Value
 
 	if mode == "x" {
-		node.Opcode = indirectXModeBytePrefix<<8 | byte.StringToByteSequence(integerValue)[0]
+		node.Opcode = getOpcodeForIndirect(node.Instruction, "x")<<8 | byte.StringToByteSequence(integerValue)[0]
 
 		line.Expect([]string{"comma"})
 		line.Advance()
@@ -37,7 +35,7 @@ func ParseIndirect(line *lexer.Line, mode string) *node.Node {
 		})
 
 	} else {
-		node.Opcode = indirectYModeBytePrefix<<8 | byte.StringToByteSequence(integerValue)[0]
+		node.Opcode = getOpcodeForIndirect(node.Instruction, "y")<<8 | byte.StringToByteSequence(integerValue)[0]
 
 		line.ExpectSequence([][]string{
 			{"right_paren"},
@@ -47,4 +45,23 @@ func ParseIndirect(line *lexer.Line, mode string) *node.Node {
 	}
 
 	return node
+}
+
+func getOpcodeForIndirect(instruction string, mode string) int {
+	/*the slices values are represented as follows
+		[x,y]
+	these are modes*/
+	opcodeMap := map[string][]int{
+		"load_accumulator": {0xA1, 0xB1},
+	}
+
+	if value, ok := opcodeMap[instruction]; ok {
+		switch mode {
+		case "x":
+			return value[0]
+		case "y":
+			return value[1]
+		}
+	}
+	return 0x0
 }

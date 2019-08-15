@@ -11,9 +11,8 @@ ParseImmidiate parses an instruction in immidiate form
 */
 func ParseImmidiate(line *lexer.Line) *node.Node {
 	node := node.NewNode()
-	immidiateModeBytePrefix := 0xA9
 
-	node.Instruction = "load_accumelator"
+	node.Instruction = "load_accumulator"
 
 	line.ExpectSequence([][]string{
 		{"hashtag"},
@@ -24,7 +23,18 @@ func ParseImmidiate(line *lexer.Line) *node.Node {
 	line.Advance()
 	integerValue := line.CurrentToken().Value
 
-	node.Opcode = immidiateModeBytePrefix<<8 | byte.StringToByteSequence(integerValue)[0]
+	node.Opcode = getOpcodeForImmidiate(node.Instruction)<<8 | byte.StringToByteSequence(integerValue)[0]
 
 	return node
+}
+
+func getOpcodeForImmidiate(instruction string) int {
+	opcodeMap := map[string]int{
+		"load_accumulator": 0xA9,
+	}
+
+	if value, ok := opcodeMap[instruction]; ok {
+		return value
+	}
+	return 0x0
 }
