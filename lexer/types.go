@@ -49,7 +49,7 @@ func Contains(name string, list []string) bool {
 
 func getKeyword(token *Token) string {
 	keywords := map[string]string{
-		"LDA": "load_accumelator",
+		"LDA": "load_accumulator",
 		"LDX": "load_x_register",
 		"LDY": "load_y_register",
 		"LSR": "logical_right_shift",

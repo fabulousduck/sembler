@@ -12,8 +12,7 @@ ParseIndirect parses an instruction in indirect form
 */
 func ParseIndirect(line *lexer.Line, mode string) *node.Node {
 	node := node.NewNode()
-
-	node.Instruction = "load_accumulator"
+	node.Instruction = line.Tokens[0].Type
 
 	line.ExpectSequence([][]string{
 		{"left_paren"},

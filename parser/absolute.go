@@ -12,7 +12,7 @@ ParseAbsolute parses an instruction in absolute form
 func ParseAbsolute(line *lexer.Line, mode string) *node.Node {
 	node := node.NewNode()
 
-	node.Instruction = "load_accumulator"
+	node.Instruction = line.Tokens[0].Type
 
 	line.Expect([]string{"dollar"})
 	line.Advance()
