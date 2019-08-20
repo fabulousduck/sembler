@@ -67,7 +67,7 @@ func getOpcodeForZeroPage(instruction string, mode string) int {
 		case "x":
 			return value[0]
 		case "0":
-			return value[1]
+			return value[2]
 		}
 	}
 	return 0x0
