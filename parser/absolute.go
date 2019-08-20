@@ -49,7 +49,29 @@ func getOpcodeForAbsolute(instruction string, mode string) int {
 		[x,y,0]
 	these are modes*/
 	opcodeMap := map[string][]int{
-		"load_accumulator": {0xBD, 0xB9, 0xAD},
+		"load_accumulator":           {0xBD, 0xB9, 0xAD},
+		"jump_with_save":             {0x0, 0x0, 0x20},
+		"load_x_register":            {0x0, 0xBE, 0xAE},
+		"load_y_register":            {0xBC, 0x0, 0xAC},
+		"logical_right_shift":        {0x5E, 0x0, 0x4E},
+		"bitwise_or_accumulator":     {0x1D, 0x19, 0x0D},
+		"rotate_left":                {0x3E, 0x0, 0x2E},
+		"rotate_right":               {0x7E, 0x0, 0x6E},
+		"subtract_with_carry":        {0xFD, 0xF9, 0xED},
+		"store_accumulator":          {0x9D, 0x99, 0x8D},
+		"store_x_register":           {0x0, 0x0, 0x8E},
+		"store_y_register":           {0x0, 0x0, 0x8C},
+		"add_mem_accumulator_carry":  {0x7D, 0x79, 0x6D},
+		"and_memory_accumulator":     {0x3D, 0x39, 0x2D},
+		"arithmetic_shift_left":      {0x1E, 0x0, 0x0E},
+		"test_with_accumulator":      {0x0, 0x0, 0x2C},
+		"compare_memory_accumulator": {0xDD, 0xD9, 0xCD},
+		"compare_memory_x":           {0x0, 0x0, 0xEC},
+		"compare_memory_y":           {0x0, 0x0, 0xC4},
+		"decrement_memory":           {0xDE, 0x0, 0xCE},
+		"exclusive_memory_or":        {0x5D, 0x59, 0x4D},
+		"increment_memory":           {0xFE, 0x0, 0xEE},
+		"jump":                       {0x0, 0x0, 0x4C},
 	}
 
 	if value, ok := opcodeMap[instruction]; ok {

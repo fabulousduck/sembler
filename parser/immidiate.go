@@ -29,11 +29,21 @@ func ParseImmidiate(line *lexer.Line) *node.Node {
 
 func getOpcodeForImmidiate(instruction string) int {
 	opcodeMap := map[string]int{
-		"load_accumulator": 0xA9,
+		"load_accumulator":           0xA9,
+		"load_x_register":            0xA2,
+		"load_y_register":            0xA0,
+		"bitwise_or_accumulator":     0x09,
+		"subtract_with_carry":        0xE9,
+		"compary_memory_x":           0xE0,
+		"compare_memory_y":           0xC0,
+		"compare_memory_accumulator": 0xC9,
+		"and_memory_accumulator":     0x29,
+		"add_mem_accumulator_carry":  0x69,
 	}
 
 	if value, ok := opcodeMap[instruction]; ok {
 		return value
 	}
+	//TODO invalid mode for instruction error
 	return 0x0
 }
