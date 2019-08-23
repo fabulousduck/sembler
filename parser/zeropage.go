@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"strconv"
+
 	"github.com/fabulousduck/sembler/lexer"
 	"github.com/fabulousduck/sembler/parser/byte"
 	"github.com/fabulousduck/sembler/parser/node"
@@ -9,17 +11,24 @@ import (
 /*
 ParseZeroPage parses an instruction in zeropage form
 */
-func ParseZeroPage(line *lexer.Line, mode string) *node.Node {
+func (p *Parser) ParseZeroPage(line *lexer.Line, mode string) *node.Node {
 	node := node.NewNode()
-
+	var integerValue string
 	node.Instruction = line.Tokens[0].Type
 
-	line.Expect([]string{"dollar"})
-	line.Advance()
+	//check if a label is used
+	if line.NextToken().Type == "string" {
+		label := p.getLabelByName(line.NextToken().Value)
+		integerValue = strconv.Itoa(label.Pos)
+		line.Advance()
+	} else {
+		line.Expect([]string{"dollar"})
+		line.Advance()
 
-	line.Expect([]string{"integer"})
-	line.Advance()
-	integerValue := line.CurrentToken().Value
+		line.Expect([]string{"integer"})
+		line.Advance()
+		integerValue = line.CurrentToken().Value
+	}
 
 	if mode == "x" || mode == "y" {
 		line.ExpectSequence([][]string{

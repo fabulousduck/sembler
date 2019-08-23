@@ -9,7 +9,7 @@ import (
 /*
 ParseImmidiate parses an instruction in immidiate form
 */
-func ParseImmidiate(line *lexer.Line) *node.Node {
+func (p *Parser) ParseImmidiate(line *lexer.Line) *node.Node {
 	node := node.NewNode()
 	node.Instruction = line.Tokens[0].Type
 
