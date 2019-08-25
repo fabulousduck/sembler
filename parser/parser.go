@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"strings"
-
 	"github.com/fabulousduck/sembler/lexer"
 	"github.com/fabulousduck/sembler/parser/mode"
 	"github.com/fabulousduck/sembler/parser/node"
@@ -14,6 +12,19 @@ structure on which all paring functions can be called
 */
 type Parser struct {
 	ParsedNodes []*node.Node
+	Labels      []*Label
+	CurrentByte int
+}
+
+/*
+Label is a struct containing info about labels in the code
+
+Labels can be used to define memory adresses of the line so instructions
+line BNE or JSR can jump to it
+*/
+type Label struct {
+	Name string
+	Pos  int
 }
 
 /*
@@ -27,86 +38,60 @@ func NewParser() *Parser {
 Parse takes a set of lexed lines and turns them into nodes
 these nodes can then be made into opcodes
 */
-func (p *Parser) Parse(lines []lexer.Line) {
-	for _, line := range lines {
-		nodes := ParseMBI(&line, GetInstructionMode(&line))
+func (p *Parser) Parse(lines *[]lexer.Line) {
+	for _, line := range *lines {
+		nodes := p.ParseLine(&line, mode.GetInstructionMode(&line))
 		p.ParsedNodes = append(p.ParsedNodes, nodes)
 	}
 }
 
-/*
-ParseMBI parses an MBI line into an opcode node
-*/
-func ParseMBI(line *lexer.Line, mode *mode.Mode) *node.Node {
-	switch mode.Name {
-	case "implied":
-		return ParseImplied(line)
-	case "immidiate":
-		return ParseImmidiate(line)
-	case "indirect":
-		return ParseIndirect(line, mode.Variable)
-	case "absolute":
-		return ParseAbsolute(line, mode.Variable)
-	case "zeroPage":
-		return ParseZeroPage(line, mode.Variable)
+func (p *Parser) createLabel(line *lexer.Line) {
+	label := new(Label)
+	label.Name = line.Tokens[0].Value
+	label.Pos = p.CurrentByte
+	p.Labels = append(p.Labels, label)
+	line.Advance()
+}
+
+func (p *Parser) getLabelByName(name string) *Label {
+	for _, label := range p.Labels {
+		if label.Name == name {
+			return label
+		}
 	}
 
-	return node.NewNode()
+	//TODO throw error for undefined label
+	return nil
 }
 
 /*
-GetInstructionMode gets the mode in which the line was written
+ParseLine parses an MBI line into an opcode node
 */
-func GetInstructionMode(line *lexer.Line) *mode.Mode {
-	mode := mode.NewMode()
-
-	//1 is the index at which mode is defined
-
-	modeIndentifierChar := line.Tokens[1].Type
-	operationValue := line.Tokens[2].Value
-
-	//check if its an implied instruction like BRK
-	if len(line.Tokens) == 1 {
-		mode.Name = "implied"
-		mode.Variable = ""
-		return mode
+func (p *Parser) ParseLine(line *lexer.Line, mode *mode.Mode) *node.Node {
+	//check if the line defines a label
+	if lexer.GetKeyword(&line.Tokens[0]) == "string" {
+		p.createLabel(line)
 	}
 
-	//final character for non direct operations is the last one
-	XYNonDirectLocation := strings.ToLower(line.Tokens[len(line.Tokens)-1].Value)
-
-	//check for x or y variables
-	if XYNonDirectLocation == "x" || XYNonDirectLocation == ")" {
-		mode.Variable = "x"
+	switch mode.Name {
+	case "implied":
+		p.CurrentByte += 2
+		return p.ParseImplied(line)
+	case "immidiate":
+		p.CurrentByte += 2
+		return p.ParseImmidiate(line)
+	case "indirect":
+		p.CurrentByte += 2
+		return p.ParseIndirect(line, mode.Variable)
+	case "absolute":
+		p.CurrentByte += 4
+		return p.ParseAbsolute(line, mode.Variable)
+	case "zeroPage":
+		p.CurrentByte += 2
+		return p.ParseZeroPage(line, mode.Variable)
 	}
 
-	if XYNonDirectLocation == "y" {
-		mode.Variable = "y"
-	}
-
-	//only immidiate mode starts with a #
-	if modeIndentifierChar == "hashtag" {
-		mode.Name = "immidiate"
-		mode.Variable = ""
-		return mode
-	}
-
-	//if it is encapsulated, we can assume it is an indirect operation
-	if modeIndentifierChar == "left_paren" {
-		mode.Name = "indirect"
-		return mode
-	}
-
-	//if the value of the operation is 4 characters long,
-	//it is assumed it is an absolute operation
-	if len(operationValue) == 4 {
-		mode.Name = "absolute"
-		return mode
-	}
-
-	mode.Name = "zeroPage"
-	return mode
-
+	return node.NewNode()
 }
 
 /*
@@ -123,8 +108,4 @@ func FindInt(l *lexer.Line) (lexer.Token, int) {
 	}
 
 	return l.Tokens[0], 0
-}
-
-func (p *Parser) validateSyntax() {
-
 }

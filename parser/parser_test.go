@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/fabulousduck/sembler/lexer"
@@ -25,7 +26,7 @@ func TestModeDetect(T *testing.T) {
 
 		lexer := lexer.NewLexer("mode test", key)
 		lexer.Lex()
-		mode := GetInstructionMode(&lexer.Lines[0])
+		mode := mode.GetInstructionMode(&lexer.Lines[0])
 
 		if mode.Name != value.Name {
 			T.Errorf(" \nline: %s\nfail: name\nexpect: %s\ngot:    %s\n", key, value.Name, mode.Name)
@@ -57,7 +58,8 @@ func TestModeParsing(T *testing.T) {
 
 		lexer := lexer.NewLexer("mode test", key)
 		lexer.Lex()
-		mbiNode := ParseMBI(&lexer.Lines[0], value.Mode)
+		p := NewParser()
+		mbiNode := p.ParseLine(&lexer.Lines[0], value.Mode)
 
 		if mbiNode.Opcode != value.Opcode {
 			T.Errorf(" \nline: %s\nfail: opcode\nexpect: %x\ngot:    %x\n", key, value.Opcode, mbiNode.Opcode)
@@ -67,6 +69,22 @@ func TestModeParsing(T *testing.T) {
 
 		T.Logf(" \nline: %s\nsuccess: opcode\nexpect: %x\ngot:    %x\n\n", key, value.Opcode, mbiNode.Opcode)
 
+	}
+}
+
+func TestLabels(T *testing.T) {
+	testCase := "NOP\nNOP\nLABEL LDA $44\nJSR LABEL"
+	correctOpcodes := []int{0xEA, 0xEA, 0xA544, 0x200004}
+	lexer := lexer.NewLexer("mode test", testCase)
+	lexer.Lex()
+	p := NewParser()
+	p.Parse(&lexer.Lines)
+
+	for index, parsedNode := range p.ParsedNodes {
+		if correctOpcodes[index] != parsedNode.Opcode {
+			T.Errorf("\nline %s\nfail: opcode\nexpect: %x\ngot:    %x\n", strconv.Itoa(index), correctOpcodes[index], parsedNode.Opcode)
+			T.FailNow()
+		}
 	}
 
 }

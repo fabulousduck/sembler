@@ -1,6 +1,10 @@
 package lexer
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/davecgh/go-spew/spew"
+)
 
 //determineType determines the type of a string character
 func determineType(character string) string {
@@ -47,7 +51,10 @@ func Contains(name string, list []string) bool {
 	return false
 }
 
-func getKeyword(token *Token) string {
+/*
+GetKeyword checks if a string of characters is a valid instruction
+*/
+func GetKeyword(token *Token) string {
 	keywords := map[string]string{
 		"DEC": "decrement_memory",
 		"ASL": "arithmetic_shift_left",
@@ -106,6 +113,7 @@ func getKeyword(token *Token) string {
 	}
 
 	if val, ok := keywords[token.Value]; ok {
+		spew.Dump(val)
 		return val
 	}
 
@@ -113,6 +121,30 @@ func getKeyword(token *Token) string {
 		return "string"
 	}
 	return token.Type
+}
+
+/*
+IsNonGenericInstruction checks if an instruction is one that cannot be interpreted through the normal system
+*/
+func IsNonGenericInstruction(name string) bool {
+	nonGenericInstructions := []string{
+		"JSR",
+		"BPL",
+		"BMI",
+		"BVC",
+		"BVS",
+		"BCC",
+		"BCS",
+		"BNE",
+		"BEQ",
+	}
+
+	for _, value := range nonGenericInstructions {
+		if value == name {
+			return true
+		}
+	}
+	return false
 }
 
 //DetermineStringType will determine the type of a given string

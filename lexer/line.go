@@ -169,7 +169,7 @@ func (l *Line) NextToken() Token {
 func (l *Line) tagKeywords() {
 	for i, token := range l.Tokens {
 		if token.Type == "character" {
-			l.Tokens[i].Type = getKeyword(&token)
+			l.Tokens[i].Type = GetKeyword(&token)
 		}
 	}
 }

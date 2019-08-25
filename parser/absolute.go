@@ -1,6 +1,10 @@
 package parser
 
 import (
+	"strconv"
+
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/fabulousduck/sembler/lexer"
 	"github.com/fabulousduck/sembler/parser/byte"
 	"github.com/fabulousduck/sembler/parser/node"
@@ -9,17 +13,24 @@ import (
 /*
 ParseAbsolute parses an instruction in absolute form
 */
-func ParseAbsolute(line *lexer.Line, mode string) *node.Node {
+func (p *Parser) ParseAbsolute(line *lexer.Line, mode string) *node.Node {
 	node := node.NewNode()
+	var integerValueString string
 
-	node.Instruction = line.Tokens[0].Type
+	node.Instruction = line.CurrentToken().Type
 
-	line.Expect([]string{"dollar"})
-	line.Advance()
+	if line.NextToken().Type == "string" {
+		label := p.getLabelByName(line.NextToken().Value)
+		integerValueString = strconv.Itoa(label.Pos)
+		line.Advance()
+	} else {
+		line.Expect([]string{"dollar"})
+		line.Advance()
 
-	line.Expect([]string{"integer"})
-	line.Advance()
-	integerValueString := line.CurrentToken().Value
+		line.Expect([]string{"integer"})
+		line.Advance()
+		integerValueString = line.CurrentToken().Value
+	}
 
 	if line.Eol() {
 		node.Opcode = generateAbsoluteOpcode(node, mode, integerValueString)
@@ -38,9 +49,16 @@ func ParseAbsolute(line *lexer.Line, mode string) *node.Node {
 
 func generateAbsoluteOpcode(node *node.Node, mode string, value string) int {
 	bytes := byte.StringToByteSequence(value)
+	if len(bytes) < 2 {
+		bytes = byte.AppendBytes(bytes, 2)
+	}
+
+	spew.Dump(bytes)
+
 	if mode != "x" && mode != "y" {
 		mode = "0"
 	}
+
 	return getOpcodeForAbsolute(node.Instruction, mode)<<16 | bytes[1]<<8 | bytes[0]
 }
 

@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"strconv"
+
 	"github.com/fabulousduck/sembler/lexer"
 	"github.com/fabulousduck/sembler/parser/byte"
 	"github.com/fabulousduck/sembler/parser/node"
@@ -9,17 +11,25 @@ import (
 /*
 ParseZeroPage parses an instruction in zeropage form
 */
-func ParseZeroPage(line *lexer.Line, mode string) *node.Node {
+func (p *Parser) ParseZeroPage(line *lexer.Line, mode string) *node.Node {
 	node := node.NewNode()
+	var integerValue string
+	node.Instruction = line.CurrentToken().Type
 
-	node.Instruction = line.Tokens[0].Type
+	//check if a label is used
+	if line.NextToken().Type == "string" {
+		label := p.getLabelByName(line.CurrentToken().Value)
+		integerValue = strconv.Itoa(label.Pos)
+		line.Advance()
+	} else {
 
-	line.Expect([]string{"dollar"})
-	line.Advance()
+		line.Expect([]string{"dollar"})
+		line.Advance()
 
-	line.Expect([]string{"integer"})
-	line.Advance()
-	integerValue := line.CurrentToken().Value
+		line.Expect([]string{"integer"})
+		line.Advance()
+		integerValue = line.CurrentToken().Value
+	}
 
 	if mode == "x" || mode == "y" {
 		line.ExpectSequence([][]string{
@@ -29,12 +39,12 @@ func ParseZeroPage(line *lexer.Line, mode string) *node.Node {
 		node.Opcode = getOpcodeForZeroPage(node.Instruction, mode)<<8 | byte.StringToByteSequence(integerValue)[0]
 		return node
 	}
-
 	node.Opcode = getOpcodeForZeroPage(node.Instruction, "0")<<8 | byte.StringToByteSequence(integerValue)[0]
 	return node
 }
 
 func getOpcodeForZeroPage(instruction string, mode string) int {
+
 	/*the slices values are represented as follows
 		[x,y,0]
 	these are modes*/
