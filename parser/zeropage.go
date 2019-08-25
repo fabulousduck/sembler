@@ -3,8 +3,6 @@ package parser
 import (
 	"strconv"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/fabulousduck/sembler/lexer"
 	"github.com/fabulousduck/sembler/parser/byte"
 	"github.com/fabulousduck/sembler/parser/node"
@@ -16,15 +14,15 @@ ParseZeroPage parses an instruction in zeropage form
 func (p *Parser) ParseZeroPage(line *lexer.Line, mode string) *node.Node {
 	node := node.NewNode()
 	var integerValue string
-	node.Instruction = line.Tokens[0].Type
-	spew.Dump(node)
+	node.Instruction = line.CurrentToken().Type
 
 	//check if a label is used
 	if line.NextToken().Type == "string" {
-		label := p.getLabelByName(line.NextToken().Value)
+		label := p.getLabelByName(line.CurrentToken().Value)
 		integerValue = strconv.Itoa(label.Pos)
 		line.Advance()
 	} else {
+
 		line.Expect([]string{"dollar"})
 		line.Advance()
 
@@ -41,7 +39,6 @@ func (p *Parser) ParseZeroPage(line *lexer.Line, mode string) *node.Node {
 		node.Opcode = getOpcodeForZeroPage(node.Instruction, mode)<<8 | byte.StringToByteSequence(integerValue)[0]
 		return node
 	}
-	spew.Dump(getOpcodeForZeroPage(node.Instruction, "0"))
 	node.Opcode = getOpcodeForZeroPage(node.Instruction, "0")<<8 | byte.StringToByteSequence(integerValue)[0]
 	return node
 }

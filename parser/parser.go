@@ -68,7 +68,6 @@ func (p *Parser) getLabelByName(name string) *Label {
 ParseLine parses an MBI line into an opcode node
 */
 func (p *Parser) ParseLine(line *lexer.Line, mode *mode.Mode) *node.Node {
-
 	//check if the line defines a label
 	if lexer.GetKeyword(&line.Tokens[0]) == "string" {
 		p.createLabel(line)

@@ -8,8 +8,18 @@ import (
 PrependBytes prepends length number of bytes to a byte sequence
 */
 func PrependBytes(byteSequence []int, length int) []int {
-	for i := 0; i < length; i++ {
+	for i := 0; i < length-len(byteSequence); i++ {
 		byteSequence = append([]int{0x00}, byteSequence...)
+	}
+	return byteSequence
+}
+
+/*
+AppendBytes prepends length number of bytes to a byte sequence
+*/
+func AppendBytes(byteSequence []int, length int) []int {
+	for i := 0; i < length-len(byteSequence); i++ {
+		byteSequence = append(byteSequence, 0x00)
 	}
 	return byteSequence
 }

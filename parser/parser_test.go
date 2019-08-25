@@ -74,7 +74,7 @@ func TestModeParsing(T *testing.T) {
 
 func TestLabels(T *testing.T) {
 	testCase := "NOP\nNOP\nLABEL LDA $44\nJSR LABEL"
-	correctOpcodes := []int{0xEA, 0xEA, 0xA544, 0x200003}
+	correctOpcodes := []int{0xEA, 0xEA, 0xA544, 0x200004}
 	lexer := lexer.NewLexer("mode test", testCase)
 	lexer.Lex()
 	p := NewParser()
@@ -82,7 +82,7 @@ func TestLabels(T *testing.T) {
 
 	for index, parsedNode := range p.ParsedNodes {
 		if correctOpcodes[index] != parsedNode.Opcode {
-			T.Errorf("\nline %s\nfail: opcode\nexpect: %x\n got:    %x\n", strconv.Itoa(index), correctOpcodes[index], parsedNode.Opcode)
+			T.Errorf("\nline %s\nfail: opcode\nexpect: %x\ngot:    %x\n", strconv.Itoa(index), correctOpcodes[index], parsedNode.Opcode)
 			T.FailNow()
 		}
 	}
