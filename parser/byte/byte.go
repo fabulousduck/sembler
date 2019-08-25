@@ -5,6 +5,16 @@ import (
 )
 
 /*
+PrependBytes prepends length number of bytes to a byte sequence
+*/
+func PrependBytes(byteSequence []int, length int) []int {
+	for i := 0; i < length; i++ {
+		byteSequence = append([]int{0x00}, byteSequence...)
+	}
+	return byteSequence
+}
+
+/*
 StringToByteSequence takes a raw string and turns it into a byte sequence of the same representation
 */
 func StringToByteSequence(byteString string) []int {
@@ -14,7 +24,9 @@ func StringToByteSequence(byteString string) []int {
 	for i := 0; i < len(byteString); i += 2 {
 		var currentByte int
 		currentByte = currentByte<<4 | getByteForChar(string(byteString[i]))
-		currentByte = currentByte<<4 | getByteForChar(string(byteString[i+1]))
+		if len(byteString) > 1 {
+			currentByte = currentByte<<4 | getByteForChar(string(byteString[i+1]))
+		}
 		bytes = append(bytes, currentByte)
 	}
 

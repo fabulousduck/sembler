@@ -3,6 +3,8 @@ package parser
 import (
 	"strconv"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/fabulousduck/sembler/lexer"
 	"github.com/fabulousduck/sembler/parser/byte"
 	"github.com/fabulousduck/sembler/parser/node"
@@ -15,6 +17,7 @@ func (p *Parser) ParseZeroPage(line *lexer.Line, mode string) *node.Node {
 	node := node.NewNode()
 	var integerValue string
 	node.Instruction = line.Tokens[0].Type
+	spew.Dump(node)
 
 	//check if a label is used
 	if line.NextToken().Type == "string" {
@@ -38,12 +41,13 @@ func (p *Parser) ParseZeroPage(line *lexer.Line, mode string) *node.Node {
 		node.Opcode = getOpcodeForZeroPage(node.Instruction, mode)<<8 | byte.StringToByteSequence(integerValue)[0]
 		return node
 	}
-
+	spew.Dump(getOpcodeForZeroPage(node.Instruction, "0"))
 	node.Opcode = getOpcodeForZeroPage(node.Instruction, "0")<<8 | byte.StringToByteSequence(integerValue)[0]
 	return node
 }
 
 func getOpcodeForZeroPage(instruction string, mode string) int {
+
 	/*the slices values are represented as follows
 		[x,y,0]
 	these are modes*/

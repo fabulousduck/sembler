@@ -12,7 +12,7 @@ ParseImplied parses an instruction in implied form
 func (p *Parser) ParseImplied(line *lexer.Line) *node.Node {
 	node := node.NewNode()
 
-	node.Opcode = getOpcodeForImplied(line.CurrentToken().Value)
+	node.Opcode = getOpcodeForImplied(line.CurrentToken().Type)
 
 	return node
 }
@@ -22,7 +22,7 @@ func getOpcodeForImplied(instruction string) int {
 		[x,y,0]
 	these are modes*/
 	opcodeMap := map[string]int{
-		"no_operation": 0xAE,
+		"no_operation": 0xEA,
 	}
 
 	if value, ok := opcodeMap[instruction]; ok {

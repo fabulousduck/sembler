@@ -1,10 +1,6 @@
 package parser
 
 import (
-	"strings"
-
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/fabulousduck/sembler/lexer"
 	"github.com/fabulousduck/sembler/parser/mode"
 	"github.com/fabulousduck/sembler/parser/node"
@@ -44,7 +40,7 @@ these nodes can then be made into opcodes
 */
 func (p *Parser) Parse(lines *[]lexer.Line) {
 	for _, line := range *lines {
-		nodes := p.ParseMBI(&line, GetInstructionMode(&line))
+		nodes := p.ParseLine(&line, mode.GetInstructionMode(&line))
 		p.ParsedNodes = append(p.ParsedNodes, nodes)
 	}
 }
@@ -69,9 +65,9 @@ func (p *Parser) getLabelByName(name string) *Label {
 }
 
 /*
-ParseMBI parses an MBI line into an opcode node
+ParseLine parses an MBI line into an opcode node
 */
-func (p *Parser) ParseMBI(line *lexer.Line, mode *mode.Mode) *node.Node {
+func (p *Parser) ParseLine(line *lexer.Line, mode *mode.Mode) *node.Node {
 
 	//check if the line defines a label
 	if lexer.GetKeyword(&line.Tokens[0]) == "string" {
@@ -80,6 +76,7 @@ func (p *Parser) ParseMBI(line *lexer.Line, mode *mode.Mode) *node.Node {
 
 	switch mode.Name {
 	case "implied":
+		p.CurrentByte += 2
 		return p.ParseImplied(line)
 	case "immidiate":
 		p.CurrentByte += 2
@@ -99,69 +96,6 @@ func (p *Parser) ParseMBI(line *lexer.Line, mode *mode.Mode) *node.Node {
 }
 
 /*
-GetInstructionMode gets the mode in which the line was written
-*/
-func GetInstructionMode(line *lexer.Line) *mode.Mode {
-	var modeIndentifierChar string
-	var operationValue string
-	mode := mode.NewMode()
-
-	spew.Dump(line)
-
-	//check if its an implied instruction like BRK
-	if len(line.Tokens) == 1 {
-		mode.Name = "implied"
-		mode.Variable = ""
-		return mode
-	}
-
-	//check if there is a label in the line which messes with the offsets
-	if lexer.GetKeyword(&line.Tokens[0]) == "string" {
-		modeIndentifierChar = line.Tokens[2].Type
-		operationValue = line.Tokens[3].Value
-	} else {
-		modeIndentifierChar = line.Tokens[1].Type
-		operationValue = line.Tokens[2].Value
-	}
-
-	//final character for non direct operations is the last one
-	XYNonDirectLocation := strings.ToLower(line.Tokens[len(line.Tokens)-1].Value)
-
-	//check for x or y variables
-	if XYNonDirectLocation == "x" || XYNonDirectLocation == ")" {
-		mode.Variable = "x"
-	}
-
-	if XYNonDirectLocation == "y" {
-		mode.Variable = "y"
-	}
-
-	//only immidiate mode starts with a #
-	if modeIndentifierChar == "hashtag" {
-		mode.Name = "immidiate"
-		mode.Variable = ""
-		return mode
-	}
-
-	//if it is encapsulated, we can assume it is an indirect operation
-	if modeIndentifierChar == "left_paren" {
-		mode.Name = "indirect"
-		return mode
-	}
-
-	//if the value of the operation is 4 characters long,
-	//it is assumed it is an absolute operation
-	if len(operationValue) == 4 {
-		mode.Name = "absolute"
-		return mode
-	}
-
-	mode.Name = "zeroPage"
-	return mode
-
-}
-
-/*
 FindInt looks for an integer value in a parsed line
 2nd return value indicatest whether it has been found or not
 1 means found
@@ -175,8 +109,4 @@ func FindInt(l *lexer.Line) (lexer.Token, int) {
 	}
 
 	return l.Tokens[0], 0
-}
-
-func (p *Parser) validateSyntax() {
-
 }

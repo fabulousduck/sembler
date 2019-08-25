@@ -26,7 +26,7 @@ func TestModeDetect(T *testing.T) {
 
 		lexer := lexer.NewLexer("mode test", key)
 		lexer.Lex()
-		mode := GetInstructionMode(&lexer.Lines[0])
+		mode := mode.GetInstructionMode(&lexer.Lines[0])
 
 		if mode.Name != value.Name {
 			T.Errorf(" \nline: %s\nfail: name\nexpect: %s\ngot:    %s\n", key, value.Name, mode.Name)
@@ -59,7 +59,7 @@ func TestModeParsing(T *testing.T) {
 		lexer := lexer.NewLexer("mode test", key)
 		lexer.Lex()
 		p := NewParser()
-		mbiNode := p.ParseMBI(&lexer.Lines[0], value.Mode)
+		mbiNode := p.ParseLine(&lexer.Lines[0], value.Mode)
 
 		if mbiNode.Opcode != value.Opcode {
 			T.Errorf(" \nline: %s\nfail: opcode\nexpect: %x\ngot:    %x\n", key, value.Opcode, mbiNode.Opcode)
@@ -74,7 +74,7 @@ func TestModeParsing(T *testing.T) {
 
 func TestLabels(T *testing.T) {
 	testCase := "NOP\nNOP\nLABEL LDA $44\nJSR LABEL"
-	correctOpcodes := []int{0xEA, 0xEA, 0xEA, 0xA544, 0x200003}
+	correctOpcodes := []int{0xEA, 0xEA, 0xA544, 0x200003}
 	lexer := lexer.NewLexer("mode test", testCase)
 	lexer.Lex()
 	p := NewParser()

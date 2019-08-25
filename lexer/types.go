@@ -118,6 +118,30 @@ func GetKeyword(token *Token) string {
 	return token.Type
 }
 
+/*
+IsNonGenericInstruction checks if an instruction is one that cannot be interpreted through the normal system
+*/
+func IsNonGenericInstruction(name string) bool {
+	nonGenericInstructions := []string{
+		"JSR",
+		"BPL",
+		"BMI",
+		"BVC",
+		"BVS",
+		"BCC",
+		"BCS",
+		"BNE",
+		"BEQ",
+	}
+
+	for _, value := range nonGenericInstructions {
+		if value == name {
+			return true
+		}
+	}
+	return false
+}
+
 //DetermineStringType will determine the type of a given string
 func DetermineStringType(str string) string {
 	return determineType(string([]rune(str)[0]))

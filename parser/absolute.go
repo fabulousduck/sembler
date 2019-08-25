@@ -3,6 +3,7 @@ package parser
 import (
 	"strconv"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/fabulousduck/sembler/lexer"
 	"github.com/fabulousduck/sembler/parser/byte"
 	"github.com/fabulousduck/sembler/parser/node"
@@ -19,6 +20,7 @@ func (p *Parser) ParseAbsolute(line *lexer.Line, mode string) *node.Node {
 
 	if line.NextToken().Type == "string" {
 		label := p.getLabelByName(line.NextToken().Value)
+		spew.Dump(label)
 		integerValueString = strconv.Itoa(label.Pos)
 		line.Advance()
 	} else {
@@ -47,9 +49,14 @@ func (p *Parser) ParseAbsolute(line *lexer.Line, mode string) *node.Node {
 
 func generateAbsoluteOpcode(node *node.Node, mode string, value string) int {
 	bytes := byte.StringToByteSequence(value)
+	if len(bytes) < 2 {
+		bytes = byte.PrependBytes(bytes, 2)
+	}
+	spew.Dump(bytes)
 	if mode != "x" && mode != "y" {
 		mode = "0"
 	}
+
 	return getOpcodeForAbsolute(node.Instruction, mode)<<16 | bytes[1]<<8 | bytes[0]
 }
 
