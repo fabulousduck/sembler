@@ -1,7 +1,11 @@
 package parser
 
 import (
+	"io/ioutil"
+	"log"
+	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/fabulousduck/sembler/lexer"
@@ -75,7 +79,7 @@ func TestModeParsing(T *testing.T) {
 func TestLabels(T *testing.T) {
 	testCase := "NOP\nNOP\nLABEL LDA $44\nJSR LABEL"
 	correctOpcodes := []int{0xEA, 0xEA, 0xA544, 0x200004}
-	lexer := lexer.NewLexer("mode test", testCase)
+	lexer := lexer.NewLexer("label test", testCase)
 	lexer.Lex()
 	p := NewParser()
 	p.Parse(&lexer.Lines)
@@ -86,5 +90,26 @@ func TestLabels(T *testing.T) {
 			T.FailNow()
 		}
 	}
+}
 
+func TestExampleFile(T *testing.T) {
+	var fulldir strings.Builder
+
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fulldir.WriteString(dir)
+	fulldir.WriteString("/test_files/memory.asm")
+
+	content, err := ioutil.ReadFile(fulldir.String())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	lexer := lexer.NewLexer("file test", string(content))
+	lexer.Lex()
+	p := NewParser()
+	p.Parse(&lexer.Lines)
 }
