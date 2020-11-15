@@ -29,11 +29,14 @@ type Node struct {
 	Mode        *mode.Mode
 	Instruction string
 	Opcode      int
+	ValueIsHex  bool
 }
 
 /*
 NewNode returns a new node pointer
 */
 func NewNode() *Node {
-	return new(Node)
+	node := new(Node)
+	node.ValueIsHex = false
+	return node
 }

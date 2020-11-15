@@ -30,7 +30,7 @@ StringToByteSequence takes a raw string and turns it into a byte sequence of the
 func StringToByteSequence(byteString string) []int {
 	bytes := []int{}
 
-	//left off here, need to swapthe first and second byte for them to be correct
+	//left off here, need to swap the first and second byte for them to be correct
 	for i := 0; i < len(byteString); i += 2 {
 		var currentByte int
 		currentByte = currentByte<<4 | getByteForChar(string(byteString[i]))

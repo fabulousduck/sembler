@@ -125,6 +125,18 @@ func (l *Line) Eol() bool {
 }
 
 /*
+HasSingleChar checks all tokens for an occurance of char
+*/
+func (l *Line) HasSingleChar(char string) bool {
+	for _, token := range l.Tokens {
+		if token.Value == char {
+			return true
+		}
+	}
+	return false
+}
+
+/*
 Expect checks if the NEXT token is of a given set of types.
 If not, it will throw a syntax error
 */
