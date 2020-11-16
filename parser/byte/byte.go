@@ -2,6 +2,7 @@ package byte
 
 import (
 	"strconv"
+	"strings"
 )
 
 /*
@@ -44,25 +45,25 @@ func StringToByteSequence(byteString string) []int {
 }
 
 func getByteForChar(char string) int {
-	intForm, _ := strconv.Atoi(char)
-	if intForm < 10 {
-		return intForm
+	intForm, err := strconv.Atoi(char)
+	if err != nil {
+		char = strings.ToLower(char)
+		switch char {
+		case "a":
+			return 0xA
+		case "b":
+			return 0xB
+		case "c":
+			return 0xC
+		case "d":
+			return 0xD
+		case "e":
+			return 0xE
+		case "f":
+			return 0xF
+		}
 	}
 
-	switch char {
-	case "A":
-		return 10
-	case "B":
-		return 11
-	case "C":
-		return 12
-	case "D":
-		return 13
-	case "E":
-		return 14
-	case "F":
-		return 15
-	}
-
-	return 0
+	return intForm
+	
 }
