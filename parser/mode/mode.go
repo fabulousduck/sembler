@@ -28,28 +28,33 @@ func GetInstructionMode(line *lexer.Line) *Mode {
 		return &Mode{"implied", ""}
 	}
 
-	//check preemptively if its a special case
-	//instruction
+	//check preemptively if its a special case instruction
 	outlierMode := getModeForOutlierOpcodes(line)
 	if outlierMode.Name != "" {
 		return outlierMode
 	}
 
-	switch line.NextToken().Value {
-	case "A":
+	//all modes that can be determined from the keyword
+	//have been done at this point.
+	line.Advance()
+
+	switch line.CurrentToken().Value {
+	case "A": //Reference to the accumilator
 		return &Mode{"accumulator", ""}
-	case "$": //line is in hex mode. we dont care about this here
+	case "$": //hex mode.
 		line.Advance()
-		break
+		if len(line.CurrentToken().Value) > 2 {
+			return &Mode{"absolute", getIndirectVariable(line)}
+		}
+		return &Mode{"zeroPage", getIndirectVariable(line)}
 	case "#":
 		return &Mode{"immidiate", ""}
 	case "(":
 		return &Mode{"indirect", getIndirectVariable(line)}
-	default: //labels
+	default:
+		//labels. These are references to something
 		return getModeForOutlierOpcodes(line)
 	}
-
-	return &Mode{}
 }
 
 func getModeForOutlierOpcodes(line *lexer.Line) *Mode {
@@ -83,6 +88,6 @@ func getIndirectVariable(line *lexer.Line) string {
 	} else if line.HasSingleChar("Y") {
 		return "y"
 	} else {
-		return "0"
+		return ""
 	}
 }
