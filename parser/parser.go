@@ -1,6 +1,9 @@
 package parser
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/fabulousduck/sembler/lexer"
 	"github.com/fabulousduck/sembler/parser/mode"
 	"github.com/fabulousduck/sembler/parser/node"
@@ -13,7 +16,7 @@ structure on which all paring functions can be called
 type Parser struct {
 	ParsedNodes []*node.Node
 	Labels      []*Label
-	CurrentByte int
+	CurrentByte int //we use currentByte for when we need to keep track of where we found a label so we can later jump back to it
 }
 
 /*
@@ -60,7 +63,8 @@ func (p *Parser) getLabelByName(name string) *Label {
 		}
 	}
 
-	//TODO throw error for undefined label
+	fmt.Printf("attempt to reference undefined label \"%s\"", name)
+	os.Exit(65)
 	return nil
 }
 
