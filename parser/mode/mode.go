@@ -66,13 +66,21 @@ func getModeForOutlierOpcodes(line *lexer.Line) *Mode {
 		mode.Variable = ""
 		break
 	case "BRK":
+		fallthrough
 	case "BPL":
+		fallthrough
 	case "BMI":
+		fallthrough
 	case "BVC":
+		fallthrough
 	case "BVS":
+		fallthrough
 	case "BCC":
+		fallthrough
 	case "BCS":
+		fallthrough
 	case "BNE":
+		fallthrough
 	case "BEQ":
 		mode.Name = "relative"
 		mode.Variable = ""

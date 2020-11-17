@@ -58,16 +58,27 @@ func TestGetModeForOutlierOpcodes(T *testing.T) {
 			},
 			expectedMode: &Mode{Name: "absolute", Variable: ""},
 		},
+		"BRK": outlierOpcodeTest{
+			line: &lexer.Line{
+				Tokens: []lexer.Token{
+					lexer.Token{Value: "BRK", Type: "string", Line: 1, Col: 1},
+				},
+				Raw:          "BRK",
+				CurrentIndex: 0,
+				LineIndex:    0,
+			},
+			expectedMode: &Mode{Name: "relative", Variable: ""},
+		},
 	}
 
 	for _, testCase := range testCases {
 		mode := getModeForOutlierOpcodes(testCase.line)
 		if testCase.expectedMode.Name != mode.Name {
-			T.Errorf("result mode name did not match expected name")
+			T.Errorf("result mode name did not match expected name\ngot: %s\nexpected: %s\n", mode.Name, testCase.expectedMode.Name)
 			T.Fail()
 		}
 		if testCase.expectedMode.Variable != mode.Variable {
-			T.Errorf("result mode variable did not match expected variable")
+			T.Errorf("result mode variable did not match expected variable\ngot: %s\nexpected: %s\n", mode.Variable, testCase.expectedMode.Variable)
 			T.Fail()
 		}
 	}
