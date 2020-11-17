@@ -3,8 +3,6 @@ package parser
 import (
 	"strconv"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/fabulousduck/sembler/lexer"
 	"github.com/fabulousduck/sembler/parser/byte"
 	"github.com/fabulousduck/sembler/parser/node"
@@ -52,8 +50,6 @@ func generateAbsoluteOpcode(node *node.Node, mode string, value string) int {
 	if len(bytes) < 2 {
 		bytes = byte.AppendBytes(bytes, 2)
 	}
-
-	spew.Dump(bytes)
 
 	if mode != "x" && mode != "y" {
 		mode = "0"

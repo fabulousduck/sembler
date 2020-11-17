@@ -39,6 +39,7 @@ func (p *Parser) ParseZeroPage(line *lexer.Line, mode string) *node.Node {
 		node.Opcode = getOpcodeForZeroPage(node.Instruction, mode)<<8 | byte.StringToByteSequence(integerValue)[0]
 		return node
 	}
+
 	node.Opcode = getOpcodeForZeroPage(node.Instruction, "0")<<8 | byte.StringToByteSequence(integerValue)[0]
 	return node
 }

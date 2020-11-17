@@ -18,7 +18,7 @@ func (p *Parser) ParseImmidiate(line *lexer.Line) *node.Node {
 	})
 	line.Advance()
 
-	if line.CurrentToken().Type == "dollar" {
+	if line.NextToken().Type == "dollar" {
 		node.ValueIsHex = true
 		line.Advance()
 	}

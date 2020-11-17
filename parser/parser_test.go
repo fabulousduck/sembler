@@ -30,16 +30,13 @@ func TestModeParsing(T *testing.T) {
 		lexer := lexer.NewLexer("mode test", key)
 		lexer.Lex()
 		p := NewParser()
-		mbiNode := p.ParseLine(&lexer.Lines[0], value.Mode)
+		parsedLine := p.ParseLine(&lexer.Lines[0], value.Mode)
 
-		if mbiNode.Opcode != value.Opcode {
-			T.Errorf(" \nline: %s\nfail: opcode\nexpect: %x\ngot:    %x\n", key, value.Opcode, mbiNode.Opcode)
+		if parsedLine.Opcode != value.Opcode {
+			T.Errorf(" \nline: %s\nfail: opcode\nexpect: %x\ngot:    %x\n", key, value.Opcode, parsedLine.Opcode)
 			T.FailNow()
 
 		}
-
-		T.Logf(" \nline: %s\nsuccess: opcode\nexpect: %x\ngot:    %x\n\n", key, value.Opcode, mbiNode.Opcode)
-
 	}
 }
 
@@ -68,7 +65,7 @@ func TestExampleFile(T *testing.T) {
 	}
 
 	fulldir.WriteString(dir)
-	fulldir.WriteString("/test_files/memory.asm")
+	fulldir.WriteString("/test_files/memory.dbg")
 
 	content, err := ioutil.ReadFile(fulldir.String())
 	if err != nil {
