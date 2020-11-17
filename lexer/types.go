@@ -2,8 +2,6 @@ package lexer
 
 import (
 	"strings"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 //determineType determines the type of a string character
@@ -113,7 +111,6 @@ func GetKeyword(token *Token) string {
 	}
 
 	if val, ok := keywords[token.Value]; ok {
-		spew.Dump(val)
 		return val
 	}
 

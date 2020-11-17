@@ -9,7 +9,7 @@ import (
 func main() {
 	s := sembler.NewSembler()
 
-	filenai dont mePtr := flag.String("file", "", "input file for the interpreter")
+	filenamePtr := flag.String("file", "", "input file for the interpreter")
 	flag.Parse()
 
 	if *filenamePtr != "" {

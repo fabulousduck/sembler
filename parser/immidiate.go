@@ -13,13 +13,19 @@ func (p *Parser) ParseImmidiate(line *lexer.Line) *node.Node {
 	node := node.NewNode()
 	node.Instruction = line.CurrentToken().Type
 
-	line.ExpectSequence([][]string{
-		{"hashtag"},
-		{"dollar"},
+	line.Expect([]string{
+		"hashtag",
 	})
+	line.Advance()
+
+	if line.CurrentToken().Type == "dollar" {
+		node.ValueIsHex = true
+		line.Advance()
+	}
 
 	line.Expect([]string{"integer"})
 	line.Advance()
+
 	integerValue := line.CurrentToken().Value
 
 	node.Opcode = getOpcodeForImmidiate(node.Instruction)<<8 | byte.StringToByteSequence(integerValue)[0]

@@ -1,8 +1,6 @@
 package mode
 
 import (
-	"strings"
-
 	"github.com/fabulousduck/sembler/lexer"
 )
 
@@ -24,26 +22,45 @@ func NewMode() *Mode {
 GetInstructionMode gets the mode in which the line was written
 */
 func GetInstructionMode(line *lexer.Line) *Mode {
-	var instructionNamePos int
-
-	if lexer.GetKeyword(&line.Tokens[0]) == "string" {
-		instructionNamePos = 1
-	} else {
-		instructionNamePos = 0
+	//check if its an implied instruction like BRK
+	//implied instructions only have one token which is itself (the identifier)
+	if len(line.Tokens) == 1 {
+		return &Mode{"implied", ""}
 	}
 
-	//check if the line is for a instruction
-	//that we cant parse genericly
-	if lexer.IsNonGenericInstruction(line.Tokens[instructionNamePos].Value) {
-		return getModeForNonGenericInstruction(line, instructionNamePos)
+	//check preemptively if its a special case instruction
+	outlierMode := getModeForOutlierOpcodes(line)
+	if outlierMode.Name != "" {
+		return outlierMode
 	}
-	return getModeForGenericInstruction(line)
+
+	//all modes that can be determined from the keyword
+	//have been done at this point.
+	line.Advance()
+
+	switch line.CurrentToken().Value {
+	case "A": //Reference to the accumilator
+		return &Mode{"accumulator", ""}
+	case "$": //hex mode.
+		line.Advance()
+		if len(line.CurrentToken().Value) > 2 {
+			return &Mode{"absolute", getIndirectVariable(line)}
+		}
+		return &Mode{"zeroPage", getIndirectVariable(line)}
+	case "#":
+		return &Mode{"immidiate", ""}
+	case "(":
+		return &Mode{"indirect", getIndirectVariable(line)}
+	default:
+		//labels. These are references to something
+		return getModeForOutlierOpcodes(line)
+	}
 }
 
-func getModeForNonGenericInstruction(line *lexer.Line, instructionNamePos int) *Mode {
+func getModeForOutlierOpcodes(line *lexer.Line) *Mode {
 	mode := NewMode()
 
-	switch line.Tokens[instructionNamePos].Value {
+	switch line.CurrentToken().Value {
 	case "JSR":
 		mode.Name = "absolute"
 		mode.Variable = ""
@@ -57,7 +74,7 @@ func getModeForNonGenericInstruction(line *lexer.Line, instructionNamePos int) *
 	case "BCS":
 	case "BNE":
 	case "BEQ":
-		mode.Name = "implied"
+		mode.Name = "relative"
 		mode.Variable = ""
 		break
 	}
@@ -65,59 +82,12 @@ func getModeForNonGenericInstruction(line *lexer.Line, instructionNamePos int) *
 	return mode
 }
 
-func getModeForGenericInstruction(line *lexer.Line) *Mode {
-	var modeIndentifierChar string
-	var operationValue string
-
-	mode := NewMode()
-	//check if its an implied instruction like BRK
-	if len(line.Tokens) == 1 {
-		mode.Name = "implied"
-		mode.Variable = ""
-		return mode
-	}
-
-	//check if there is a label in the line which messes with the offsets
-	if lexer.GetKeyword(&line.Tokens[0]) == "string" {
-		modeIndentifierChar = line.Tokens[2].Type
-		operationValue = line.Tokens[3].Value
+func getIndirectVariable(line *lexer.Line) string {
+	if line.HasSingleChar("X") {
+		return "x"
+	} else if line.HasSingleChar("Y") {
+		return "y"
 	} else {
-		modeIndentifierChar = line.Tokens[1].Type
-		operationValue = line.Tokens[2].Value
+		return ""
 	}
-
-	//final character for non direct operations is the last one
-	XYNonDirectLocation := strings.ToLower(line.Tokens[len(line.Tokens)-1].Value)
-
-	//check for x or y variables
-	if XYNonDirectLocation == "x" || XYNonDirectLocation == ")" {
-		mode.Variable = "x"
-	}
-
-	if XYNonDirectLocation == "y" {
-		mode.Variable = "y"
-	}
-
-	//only immidiate mode starts with a #
-	if modeIndentifierChar == "hashtag" {
-		mode.Name = "immidiate"
-		mode.Variable = ""
-		return mode
-	}
-
-	//if it is encapsulated, we can assume it is an indirect operation
-	if modeIndentifierChar == "left_paren" {
-		mode.Name = "indirect"
-		return mode
-	}
-
-	//if the value of the operation is 4 characters long,
-	//it is assumed it is an absolute operation
-	if len(operationValue) == 4 {
-		mode.Name = "absolute"
-		return mode
-	}
-
-	mode.Name = "zeroPage"
-	return mode
 }
