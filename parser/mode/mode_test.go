@@ -3,9 +3,13 @@ package mode
 import (
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/fabulousduck/sembler/lexer"
 )
+
+type outlierOpcodeTest struct {
+	line         *lexer.Line
+	expectedMode *Mode
+}
 
 func TestModeDetect(T *testing.T) {
 
@@ -26,8 +30,6 @@ func TestModeDetect(T *testing.T) {
 		lexer.Lex()
 		mode := GetInstructionMode(&lexer.Lines[0])
 
-		spew.Dump(mode)
-
 		if mode.Name != value.Name {
 			T.Errorf(" \nline: %s\nfail: name\nexpect: %s\ngot:    %s\n", key, value.Name, mode.Name)
 			T.Fail()
@@ -37,8 +39,37 @@ func TestModeDetect(T *testing.T) {
 			T.Errorf(" \nline: %s\nfail: variable\nexpect: %s\ngot:    %s\n", key, value.Variable, mode.Variable)
 			T.Fail()
 		}
-
-		// T.Logf(" \nline: %s\nsuccess: name + variable\nexpect: %s %s\ngot:    %s %s\n\n", key, value.Name, value.Variable, mode.Name, mode.Variable)
-
 	}
+}
+
+func TestGetModeForOutlierOpcodes(T *testing.T) {
+
+	testCases := map[string]outlierOpcodeTest{
+		"JSR": outlierOpcodeTest{
+			line: &lexer.Line{
+				Tokens: []lexer.Token{
+					lexer.Token{Value: "JSR", Type: "string", Line: 1, Col: 1},
+					lexer.Token{Value: "$", Type: "dollar", Line: 1, Col: 2},
+					lexer.Token{Value: "4400", Type: "integer", Line: 1, Col: 3},
+				},
+				Raw:          "JSR $4400",
+				CurrentIndex: 0,
+				LineIndex:    0,
+			},
+			expectedMode: &Mode{Name: "absolute", Variable: ""},
+		},
+	}
+
+	for _, testCase := range testCases {
+		mode := getModeForOutlierOpcodes(testCase.line)
+		if testCase.expectedMode.Name != mode.Name {
+			T.Errorf("result mode name did not match expected name")
+			T.Fail()
+		}
+		if testCase.expectedMode.Variable != mode.Variable {
+			T.Errorf("result mode variable did not match expected variable")
+			T.Fail()
+		}
+	}
+
 }
