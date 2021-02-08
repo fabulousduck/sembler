@@ -28,6 +28,11 @@ func GetInstructionMode(line *lexer.Line) *Mode {
 		return &Mode{"implied", ""}
 	}
 
+	//check if the first word in a line is a label
+	if line.CurrentToken().Type == "string" {
+		line.Advance()
+	}
+
 	//check preemptively if its a special case instruction
 	outlierMode := getModeForOutlierOpcodes(line)
 	if outlierMode.Name != "" {

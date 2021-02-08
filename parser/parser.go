@@ -91,6 +91,7 @@ func (p *Parser) ParseLine(line *lexer.Line, mode *mode.Mode) *node.Node {
 		p.CurrentByte += 4
 		return p.ParseAbsolute(line, mode.Variable)
 	case "zeroPage":
+		fmt.Printf("zeropage\n")
 		p.CurrentByte += 2
 		return p.ParseZeroPage(line, mode.Variable)
 	}
