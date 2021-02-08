@@ -43,7 +43,12 @@ these nodes can then be made into opcodes
 */
 func (p *Parser) Parse(lines *[]lexer.Line) {
 	for _, line := range *lines {
-		nodes := p.ParseLine(&line, mode.GetInstructionMode(&line))
+		mode := mode.GetInstructionMode(&line)
+
+		//we have to reset the cursor to 0 on the line
+		line.CurrentIndex = 0
+
+		nodes := p.ParseLine(&line, mode)
 		p.ParsedNodes = append(p.ParsedNodes, nodes)
 	}
 }
@@ -91,7 +96,6 @@ func (p *Parser) ParseLine(line *lexer.Line, mode *mode.Mode) *node.Node {
 		p.CurrentByte += 4
 		return p.ParseAbsolute(line, mode.Variable)
 	case "zeroPage":
-		fmt.Printf("zeropage\n")
 		p.CurrentByte += 2
 		return p.ParseZeroPage(line, mode.Variable)
 	}
